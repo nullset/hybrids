@@ -139,6 +139,13 @@ function defineElement(tagName, hybridsOrConstructor) {
     throw Error(`Element '${tagName}' already defined`);
   }
 
+  const reflected = Object.keys(hybridsOrConstructor).reduce(function(acc, key) {
+    if (hybridsOrConstructor[key].reflect) {
+      acc.push(key);
+    }
+    return acc;
+  }, []);
+
   class Hybrid extends HTMLElement {
     static get name() { return tagName; }
 
@@ -160,6 +167,16 @@ function defineElement(tagName, hybridsOrConstructor) {
         list[index]();
       }
     }
+
+    static get observedAttributes() { return reflected; }
+    
+    attributeChangedCallback(name, oldValue, newValue) {
+      console.log(oldValue, newValue)
+      if (oldValue === newValue) return;
+      // TODO: If typeof this[name] !== typeof newValue then throw error.
+      this[name] = newValue;
+    }
+    
   }
 
   compile(Hybrid, hybridsOrConstructor);
