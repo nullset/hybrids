@@ -34,3 +34,53 @@ export function stringifyElement(element) {
 
 export const IS_IE = 'ActiveXObject' in window;
 export const deferred = Promise.resolve();
+
+export const stringifyPreface = '::OBJECT::';
+
+export function stringify(object) {
+  return stringifyPreface + btoa(JSON.stringify(object));
+}
+
+export function objectify(string) {
+  return JSON.parse(atob(string));
+}
+
+const defaultTransform = v => v;
+
+const objectTransform = (value) => {
+  if (typeof value !== 'object') {
+    throw TypeError(`Assigned value must be an object: ${typeof value}`);
+  }
+  return value && Object.freeze(value);
+};
+
+export function typedValue(value) {
+  const type = typeof value;
+  let transform = defaultTransform;
+
+  switch (type) {
+    case 'string':
+      transform = String;
+      break;
+    case 'number':
+      transform = Number;
+      break;
+    case 'boolean':
+      transform = Boolean;
+      break;
+    case 'function':
+      transform = value;
+      value = transform();
+      break;
+    case 'object':
+      if (value) Object.freeze(value);
+      transform = objectTransform;
+      break;
+    default: break;
+  }
+  return {
+    type: type,
+    value: value,
+    transform: transform,
+  }
+}

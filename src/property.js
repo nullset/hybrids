@@ -1,4 +1,4 @@
-import { camelToDash } from './utils';
+import { camelToDash, typedValue } from './utils';
 
 const defaultTransform = v => v;
 
@@ -9,30 +9,8 @@ const objectTransform = (value) => {
   return value && Object.freeze(value);
 };
 
-export default function property(value, connect) {
-  const type = typeof value;
-  let transform = defaultTransform;
-
-  switch (type) {
-    case 'string':
-      transform = String;
-      break;
-    case 'number':
-      transform = Number;
-      break;
-    case 'boolean':
-      transform = Boolean;
-      break;
-    case 'function':
-      transform = value;
-      value = transform();
-      break;
-    case 'object':
-      if (value) Object.freeze(value);
-      transform = objectTransform;
-      break;
-    default: break;
-  }
+export default function property(val, connect) {
+  let {type, transform, value} = typedValue(val);
 
   return {
     get: (host, val = value) => val,
